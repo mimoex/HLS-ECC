@@ -37,4 +37,12 @@ void inv_fp(mpz_class* c, const mpz_class& a);
 //有限体の除算	c=a/b %p
 void div_fp(mpz_class* c, const mpz_class& a, const mpz_class& b);
 //有限体の2乗	c=a^2 %p
-void sqr_fp(mpz_class* c, const mpz_class& a);
+//void sqr_fp(mpz_class* c, const mpz_class& a);
+
+
+mpz_class MR(const mpz_class& t);
+void mul_mon(mpz_class* c, const mpz_class& a, const mpz_class& b);
+void sqr_mon(mpz_class* c, const mpz_class& a);
+void pow_mon(mpz_class* c, const mpz_class& a, const mpz_class& b);
+
+Point normal2mon(const Point& p);

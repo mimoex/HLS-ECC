@@ -11,6 +11,14 @@ mon para = {
 	mpz_class("19")
 };
 
+Point normal2mon(const Point& p)
+{
+	Point result;
+	mul_mon(&result.X, p.X, para.R2);
+	mul_mon(&result.Z, p.Z, para.R2);
+	return result;
+}
+
 
 void add_fp(mpz_class* c, const mpz_class& a, const mpz_class& b)
 {
@@ -31,11 +39,11 @@ void mul_fp(mpz_class* c, const mpz_class& a, const mpz_class& b)
 }
 
 
-void sqr_fp(mpz_class* c, const mpz_class& a)
-{
-	*c = a * a;
-	*c %= para.mod;
-}
+//void sqr_fp(mpz_class* c, const mpz_class& a)
+//{
+//	*c = a * a;
+//	*c %= para.mod;
+//}
 
 
 void pow_fp(mpz_class* c, const mpz_class& a, const mpz_class& b)
@@ -49,21 +57,39 @@ void pow_fp(mpz_class* c, const mpz_class& a, const mpz_class& b)
 	*c = result;
 }
 
-//void mul_mon(mpz_class* c, const mpz_class& a, const mpz_class& b)
-//{
-//	*c = MR(a * b);
-//}
+mpz_class MR(const mpz_class& t)
+{
+	mpz_class c;
+	c = (t & para.R) * para.nr;
+	c &= para.R;
+	c *= para.mod;
+	c += t;
+	c >>= para.nbit;
+	if (c >= para.mod) c -= para.mod;
 
-//void pow_mon(mpz_class* c, const mpz_class& a, const mpz_class& b)
-//{
-//	mpz_class result = para.mrR2;
-//
-//	for (int i = para.nbit - 1; i >= 0; i--) {
-//		result = MR(result * result);
-//		if (mpz_tstbit(b.get_mpz_t(), i) == 1) result = MR(result * a);
-//	}
-//	*c = result;
-//}
+	return c;
+}
+
+void mul_mon(mpz_class* c, const mpz_class& a, const mpz_class& b)
+{
+	*c = MR(a * b);
+}
+
+void sqr_mon(mpz_class* c, const mpz_class& a)
+{
+	*c = MR(a * a);
+}
+
+void pow_mon(mpz_class* c, const mpz_class& a, const mpz_class& b)
+{
+	mpz_class result = para.mrR2;
+
+	for (int i = para.nbit - 1; i >= 0; i--) {
+		sqr_mon(&result, result);
+		if (mpz_tstbit(b.get_mpz_t(), i) == 1) mul_mon(&result, result, a);
+	}
+	*c = result;
+}
 
 //逆元
 void inv_fp(mpz_class* c, const mpz_class& a)
@@ -73,7 +99,7 @@ void inv_fp(mpz_class* c, const mpz_class& a)
 
 	}
 	else {
-		pow_fp(c, a, para.mod - 2);
+		pow_mon(c, a, para.mod - 2);
 	}
 
 }
@@ -81,6 +107,9 @@ void inv_fp(mpz_class* c, const mpz_class& a)
 
 void div_fp(mpz_class* c, const mpz_class& a, const mpz_class& b)
 {
+	mpz_class bmon;
+	bmon = MR(b * para.R2);
 	inv_fp(c, b);
-	mul_fp(c, a, *c);
+	mul_mon(c, a, *c);
+	*c = MR(*c);
 }

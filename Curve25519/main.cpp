@@ -27,8 +27,6 @@ void curve25519_binary_check()
 		}
 		else {
 			div_fp(&showx, result.X, result.Z);
-			cout << n << "X:" << result.X.get_str(16) << endl;
-			cout << n << "Z:" << result.Z.get_str(16) << endl;
 			cout << n << "P=0x" << showx.get_str(16) << endl;
 			cout << endl;
 		}
@@ -47,6 +45,5 @@ void calcinv4()
 int main(void)
 {
 	curve25519_binary_check();
-	//calcinv4();
 	return 0;
 }
