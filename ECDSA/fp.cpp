@@ -32,7 +32,7 @@ void subMod(ap_uint<256>& z, const ap_uint<256> x, const ap_uint<256> y)
 	}
 }
 
-void mulMont(ap_uint<256>& z, const ap_uint<512> x)
+void ModRed(ap_uint<256>& z, const ap_uint<512> x)
 {
 	ap_uint<512> c512;
 	ap_uint<256> c256;
@@ -42,8 +42,8 @@ void mulMont(ap_uint<256>& z, const ap_uint<512> x)
 	c256 = c512&para.R;
 	//c512 = c256*para.mod;
 	mul(c512, c256, para.mod);
-	//c512 += x;
-	add(c512, c512, x);
+	c512 += x;
+	//add(c512, c512, x);
 	c256 = c512>>para.nbit;
 	if (c256 >= para.mod) {
 		//c256 -= para.mod;
@@ -54,17 +54,26 @@ void mulMont(ap_uint<256>& z, const ap_uint<512> x)
 
 void mulMod(ap_uint<256>& z, const ap_uint<256> x, const ap_uint<256> y)
 {
-//#pragma HLS allocation operation instances=mul limit=1
-//#pragma HLS allocation function instances=MR limit=1
+#pragma HLS allocation function instances=ModRed limit=1
 	ap_uint<512> xy;
 	//temp512=x*y;
 	mul(xy, x, y);
-	mulMont(z, xy);
+	ModRed(z, xy);
+	mul(xy, z, para.R2);
+	ModRed(z, xy);
+}
+
+void Montmul(ap_uint<256>& z, const ap_uint<256> x, const ap_uint<256> y)
+{
+#pragma HLS allocation function instances=ModRed limit=1
+	ap_uint<512> xy;
+	mul(xy, x, y);
+	ModRed(z, xy);
 }
 
 void sqrMod(ap_uint<256>& z, const ap_uint<256> x)
 {
 	ap_uint<512> xx;
 	sqr(xx,x);
-	mulMont(z, xx);
+	ModRed(z, xx);
 }
